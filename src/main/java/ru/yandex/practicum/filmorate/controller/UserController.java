@@ -1,9 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+
+import javax.validation.Valid;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -12,6 +13,17 @@ import java.util.HashMap;
 @RequestMapping("/users")
 public class UserController {
     private final HashMap<Integer, User> users = new HashMap<>();
+    private Integer id = 1;
+
+    private Integer getUserId(){
+        return id++;
+    }
+    public Boolean loginContainsSpace(User user){
+        if (user.getLogin().contains(" ")){
+            throw new RuntimeException("В логине содержится пробел");
+        }
+        return false;
+    }
 
     @GetMapping
     public Collection<User> findAll() {
@@ -20,23 +32,42 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         log.info("Получен запрос POST. Данные тела запроса: {}", user);
-        assert user != null;
-        final User validUser = users.put(user.getId(), user);
-        assert validUser != null;
-        log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), validUser.getId());
-        return validUser;
+
+        if (user != null && !loginContainsSpace(user)) {
+            if (user.getId() == 0){
+                user.setId(getUserId());
+                if (user.getName() == null || user.getName().equals("")){
+                    user.setName(user.getLogin());
+                }
+                users.put(user.getId(), user);
+                log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
+                return user;
+            }
+            user.setId(getUserId());
+            users.put(user.getId(), user);
+            log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
+        } else {
+            throw new RuntimeException("Ошибка валидации");
+        }
+        return user;
     }
 
     @PutMapping
-    public User put(@RequestBody User user) {
+    public User put(@Valid @RequestBody User user) {
         log.info("Получен запрос PUT. Данные тела запроса: {}", user);
-        users.remove(user.getId());
-        final User validUser = users.put(user.getId(), user);
-        assert validUser != null;
-        log.info("Обновлен объект {} с идентификатором {}", User.class.getSimpleName(), validUser.getId());
-        return validUser;
+        if (!users.containsKey(user.getId())) {
+            throw new RuntimeException("Пользователь не существует");
+        }
+        if (user.getName() == null || user.getName().equals("")){
+            user.setName(user.getLogin());
+        }
+        if (!loginContainsSpace(user)) {
+            users.put(user.getId(), user);
+            log.info("Обновлен объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
+        }
+        return user;
     }
 
 }
