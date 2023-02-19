@@ -22,7 +22,9 @@ public class UserController {
     @PostMapping
     public User create(@RequestBody User user) {
         log.info("Получен запрос POST. Данные тела запроса: {}", user);
+        assert user != null;
         final User validUser = users.put(user.getId(), user);
+        assert validUser != null;
         log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), validUser.getId());
         return validUser;
     }
@@ -32,6 +34,7 @@ public class UserController {
         log.info("Получен запрос PUT. Данные тела запроса: {}", user);
         users.remove(user.getId());
         final User validUser = users.put(user.getId(), user);
+        assert validUser != null;
         log.info("Обновлен объект {} с идентификатором {}", User.class.getSimpleName(), validUser.getId());
         return validUser;
     }
