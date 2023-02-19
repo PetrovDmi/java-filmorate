@@ -15,7 +15,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Film {
-
+    @Positive
     private int id;
     @NotBlank(message = "Имя должно содержать буквенные символы. ")
     private String name;

@@ -51,7 +51,6 @@ class FilmorateApplicationTests {
     void validateIdNegativeShouldFailValidation() {
         film = new Film(-1, "Тихоокеанский рубеж", "О роботах",
                 LocalDate.of(2013, 6, 11), 131);
-
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         assertEquals(1, violations.size());

@@ -31,7 +31,7 @@ public class FilmController {
     public Film create(@Valid @RequestBody Film film) {
         log.info("Получен запрос POST. Данные тела запроса: {}", film);
         if (film != null && film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28))){
-            if (film.getId() <= 0){
+            if (film.getId() == 0){
                 film.setId(getFilmId());
                 films.put(film.getId(), film);
                 log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), film.getId());
