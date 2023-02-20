@@ -16,6 +16,7 @@ public class Film {
     private int id;
     @NotBlank(message = "Имя должно содержать буквенные символы. ")
     private String name;
+    @NotBlank
     @Size(max = 200, message = "Описание фильма не должно превышать 200 символов. ")
     private String description;
     @PastOrPresent(message = "Дата релиза не может быть в будущем. ")

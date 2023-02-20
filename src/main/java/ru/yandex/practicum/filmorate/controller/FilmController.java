@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.CustomException.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -28,9 +30,9 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) throws ValidationException {
         log.info("Получен запрос POST. Данные тела запроса: {}", film);
-        if (film != null && film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28))){
+        if (film != null && film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28)) && !film.getDescription().equals("")){
             if (film.getId() == 0){
                 film.setId(getFilmId());
                 films.put(film.getId(), film);
@@ -40,16 +42,19 @@ public class FilmController {
             films.put(film.getId(), film);
             log.info("Создан объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
         } else {
-            throw new RuntimeException("Ошибка валидации фильма");
+            throw new ValidationException("Ошибка валидации");
         }
         return film;
     }
 
     @PutMapping
-    public Film put(@Valid @RequestBody Film film) {
+    public Film put(@Valid @RequestBody Film film) throws FilmNotFoundException, ValidationException {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
         if (!films.containsKey(film.getId())) {
-            throw new RuntimeException("Фильм не существует");
+            throw new FilmNotFoundException("Ошибка, фильм не найден");
+        }
+        if (!film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28))){
+            throw new ValidationException("Ошибка валидации");
         }
         films.put(film.getId(), film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
