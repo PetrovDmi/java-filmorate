@@ -19,7 +19,6 @@ public class Film {
     @NotBlank
     @Size(max = 200, message = "Описание фильма не должно превышать 200 символов. ")
     private String description;
-    @PastOrPresent(message = "Дата релиза не может быть в будущем. ")
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма не может быть отрицательной. ")
     private long duration;

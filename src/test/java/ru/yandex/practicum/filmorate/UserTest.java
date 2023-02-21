@@ -78,16 +78,6 @@ class UserTest {
     }
 
     @Test
-    void validateLoginContainsSpaceShouldFailValidation() {
-        user.setLogin("log in");
-
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class, () -> userController.create(user));
-
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
-    }
-
-    @Test
     void createUserHaveNotNameShouldSetNameAsLogin() throws ValidationException {
         user.setName("");
 

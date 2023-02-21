@@ -2,10 +2,10 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.CustomException.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
+import ru.yandex.practicum.filmorate.Interface.FilmInterface;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -15,12 +15,29 @@ import java.util.HashMap;
 @RestController
 @Slf4j
 @RequestMapping("/films")
-public class FilmController {
+public class FilmController implements FilmInterface {
     private final HashMap<Integer, Film> films = new HashMap<>();
+    private final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private Integer id = 1;
 
-    private Integer getFilmId (){
+    public Integer getFilmId() {
         return id++;
+    }
+
+    public void validate(Film film) {
+        if (film != null && film.getReleaseDate().isAfter(MIN_REALIZE_DATE) && !film.getDescription().isEmpty()) {
+            if (film.getId() == 0) {
+                film.setId(getFilmId());
+            }
+        } else {
+            throw new ValidationException("Ошибка валидации");
+        }
+    }
+
+    public void checkFilmExistence(Film film) {
+        if (!films.containsKey(film.getId())) {
+            throw new ObjectNotFoundException("Ошибка, фильм не найден");
+        }
     }
 
     @GetMapping
@@ -32,30 +49,17 @@ public class FilmController {
     @PostMapping
     public Film create(@Valid @RequestBody Film film) throws ValidationException {
         log.info("Получен запрос POST. Данные тела запроса: {}", film);
-        if (film != null && film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28)) && !film.getDescription().equals("")){
-            if (film.getId() == 0){
-                film.setId(getFilmId());
-                films.put(film.getId(), film);
-                log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), film.getId());
-                return film;
-            }
-            films.put(film.getId(), film);
-            log.info("Создан объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
-        } else {
-            throw new ValidationException("Ошибка валидации");
-        }
+        validate(film);
+        films.put(film.getId(), film);
+        log.info("Создан объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
         return film;
     }
 
     @PutMapping
-    public Film put(@Valid @RequestBody Film film) throws FilmNotFoundException, ValidationException {
+    public Film put(@Valid @RequestBody Film film) throws ObjectNotFoundException, ValidationException {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
-        if (!films.containsKey(film.getId())) {
-            throw new FilmNotFoundException("Ошибка, фильм не найден");
-        }
-        if (!film.getReleaseDate().isAfter(LocalDate.of(1895,12, 28))){
-            throw new ValidationException("Ошибка валидации");
-        }
+        checkFilmExistence(film);
+        validate(film);
         films.put(film.getId(), film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
         return film;

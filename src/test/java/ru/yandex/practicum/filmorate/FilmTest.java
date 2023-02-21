@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.yandex.practicum.filmorate.CustomException.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -129,7 +129,7 @@ class FilmTest {
     }
 
     @Test
-    void updateFilmTestShouldAddFilm() throws ValidationException, FilmNotFoundException {
+    void updateFilmTestShouldAddFilm() throws ValidationException, ObjectNotFoundException {
         Film gottenFilm;
         filmController.create(film);
         film = new Film(1, "Тихоокеанский рубеж 2", "О роботах",
@@ -159,8 +159,8 @@ class FilmTest {
         film = new Film(5, "Тихоокеанский рубеж 2", "О роботах",
                 LocalDate.of(1900, 6, 11), 131);
 
-        final FilmNotFoundException exception = Assertions.assertThrows(
-                FilmNotFoundException.class, () -> filmController.put(film));
+        final ObjectNotFoundException exception = Assertions.assertThrows(
+                ObjectNotFoundException.class, () -> filmController.put(film));
 
         Assertions.assertEquals("Ошибка, фильм не найден", exception.getMessage());
     }
