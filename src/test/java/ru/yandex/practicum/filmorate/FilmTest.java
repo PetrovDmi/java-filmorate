@@ -116,7 +116,7 @@ class FilmTest {
         Collection<Film> films;
 
         filmController.create(film);
-        films = filmController.getAllFilms();
+        films = filmController.getAll();
 
         Assertions.assertEquals(1, films.size());
     }
@@ -125,7 +125,7 @@ class FilmTest {
     void addFilmTestShouldAddFilm() throws ValidationException {
         filmController.create(film);
 
-        Assertions.assertEquals(1, filmController.getAllFilms().size());
+        Assertions.assertEquals(1, filmController.getAll().size());
     }
 
     @Test
@@ -136,7 +136,7 @@ class FilmTest {
                 LocalDate.of(2013, 6, 11), 131);
 
         filmController.put(film);
-        gottenFilm = filmController.getAllFilms().iterator().next();
+        gottenFilm = filmController.getAll().iterator().next();
 
         Assertions.assertEquals("Тихоокеанский рубеж 2", gottenFilm.getName());
     }

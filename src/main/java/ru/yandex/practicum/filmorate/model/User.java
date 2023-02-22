@@ -11,7 +11,7 @@ import java.util.Objects;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class User{
+public class User {
     @PositiveOrZero
     private int id;
     @NotBlank
@@ -37,5 +37,4 @@ public class User{
     public int hashCode() {
         return Objects.hash(getId());
     }
-
 }

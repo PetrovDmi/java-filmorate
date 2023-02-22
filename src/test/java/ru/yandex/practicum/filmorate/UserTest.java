@@ -65,7 +65,7 @@ class UserTest {
 
         userController.create(user);
 
-        Assertions.assertEquals(1, userController.findAll().iterator().next().getId());
+        Assertions.assertEquals(1, userController.getAll().iterator().next().getId());
     }
 
     @Test
@@ -83,7 +83,7 @@ class UserTest {
 
         userController.create(user);
 
-        Assertions.assertEquals(user.getLogin(), userController.findAll().iterator().next().getName());
+        Assertions.assertEquals(user.getLogin(), userController.getAll().iterator().next().getName());
     }
 
     @Test
@@ -150,6 +150,6 @@ class UserTest {
 
         userController.put(user);
 
-        Assertions.assertEquals(user.getLogin(), userController.findAll().iterator().next().getName());
+        Assertions.assertEquals(user.getLogin(), userController.getAll().iterator().next().getName());
     }
 }
