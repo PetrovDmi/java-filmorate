@@ -3,10 +3,12 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -22,12 +24,14 @@ class UserTest {
     private Validator validator;
     private User user;
     UserController userController;
+    @Autowired
+    private UserService service;
 
     @BeforeEach
     public void initBeforeEach() {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.usingContext().getValidator();
-        userController = new UserController();
+        userController = new UserController(service);
         user = new User(1, "login", "name", "yandex@mail.ru", LocalDate.of(2000, 8, 20));
     }
 
