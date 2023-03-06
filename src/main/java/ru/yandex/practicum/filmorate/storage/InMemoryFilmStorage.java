@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.CustomException.InternalServerError;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -44,25 +45,36 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public boolean deleteFilm(Film film) {
+    public void deleteFilm(Film film) {
         films.remove(film.getId());
-        return true;
+        if (films.containsKey(film.getId())) {
+            throw new InternalServerError("Ошибка удаления фильма с идентификатором " + film.getId());
+        }
     }
 
     @Override
-    public boolean addLike(int filmId, int userId) {
+    public void addLike(int filmId, int userId) {
+        if (!films.containsKey(filmId)) {
+            throw new ObjectNotFoundException("Фильм не найден!");
+        }
         Film film = films.get(filmId);
         film.addLike(userId);
+        if (!film.getLikes().contains(userId)) {
+            throw new ObjectNotFoundException("Лайк не добавлен!");
+        }
         updateFilm(film);
-        return true;
     }
 
     @Override
-    public boolean deleteLike(int filmId, int userId) {
+    public void deleteLike(int filmId, int userId) {
+        if (!films.containsKey(filmId)) {
+            throw new ObjectNotFoundException("Фильм не найден!");
+        }
         Film film = films.get(filmId);
-        film.deleteLike(userId);
-        updateFilm(film);
-        return true;
+        if (!film.getLikes().contains(userId)) {
+            throw new ObjectNotFoundException("Лайк не найден!");
+        }
+        film.getLikes().remove(userId);
     }
 
     @Override

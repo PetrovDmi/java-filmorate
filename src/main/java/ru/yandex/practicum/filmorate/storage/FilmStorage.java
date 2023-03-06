@@ -13,11 +13,11 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
-    boolean deleteFilm(Film film);
+    void deleteFilm(Film film);
 
-    boolean addLike(int filmId, int userId);
+    void addLike(int filmId, int userId);
 
-    boolean deleteLike(int filmId, int userId);
+    void deleteLike(int filmId, int userId);
 
     Collection<Film> getMostPopularFilms(int count);
 }

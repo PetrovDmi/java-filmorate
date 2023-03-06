@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
@@ -10,14 +11,13 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Map;
 
 @RestController
 @Slf4j
 @RequestMapping("/films")
 public class FilmController extends Controller<Film> {
     private final FilmService filmService;
-    private final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
-    private Integer id = 1;
 
     public FilmController(FilmService filmService) {
         this.filmService = filmService;
@@ -32,7 +32,6 @@ public class FilmController extends Controller<Film> {
     @PostMapping
     public Film create(@Valid @RequestBody Film film) throws ValidationException {
         log.info("Получен запрос POST. Данные тела запроса: {}", film);
-        validate(film);
         filmService.add(film);
         log.info("Создан объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
         return film;
@@ -41,8 +40,6 @@ public class FilmController extends Controller<Film> {
     @PutMapping
     public Film put(@Valid @RequestBody Film film) throws ObjectNotFoundException, ValidationException {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
-        checkExistence(film);
-        validate(film);
         filmService.update(film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
         return film;
@@ -76,24 +73,22 @@ public class FilmController extends Controller<Film> {
                 Film.class.getSimpleName(), id, userId);
     }
 
-    public Integer getId() {
-        return id++;
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleRuntimeException(final RuntimeException e) {
+        return Map.of("Обнаружена критическая ошибка: ", e.getMessage());
     }
 
-    public void validate(Film film) {
-        if (film != null && film.getReleaseDate().isAfter(MIN_REALIZE_DATE) && !film.getDescription().isEmpty()) {
-            if (film.getId() == 0) {
-                film.setId(getId());
-            }
-        } else {
-            throw new ValidationException("Ошибка валидации");
-        }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleObjectNotFound(final ObjectNotFoundException e) {
+        return Map.of("Обьект не найден: ", e.getMessage());
     }
 
-    public void checkExistence(Film film) {
-        if (!filmService.getFilms().contains(film)) {
-            throw new ObjectNotFoundException("Ошибка, фильм не найден");
-        }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleValidationException(final ValidationException e) {
+        return Map.of("Ошибка валидации: ", e.getMessage());
     }
 }
 

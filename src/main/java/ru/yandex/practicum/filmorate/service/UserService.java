@@ -4,11 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.ValidationException;
 import javax.validation.Validator;
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.Set;
 @Slf4j
 @Service
 public class UserService {
-    private int increment = 0;
+    private int increment = 1;
     private final Validator validator;
     private final InMemoryUserStorage inMemoryUserStorage;
 
@@ -27,18 +27,17 @@ public class UserService {
         this.inMemoryUserStorage = userStorage;
     }
 
-    public User add(final User user) {
-        validate(user);
-        return inMemoryUserStorage.addUser(user);
+    public void add(final User user) {
+        inMemoryUserStorage.addUser(validate(user));
     }
 
     public Collection<User> getAllUsers() {
         return inMemoryUserStorage.getAllUsers();
     }
 
-    public User update(final User user) {
-        validate(user);
-        return inMemoryUserStorage.updateUser(user);
+    public void update(final User user) {
+        checkExistence(user);
+        inMemoryUserStorage.updateUser(validate(user));
     }
 
     public void addFriend(final String supposedUserId, final String supposedFriendId) {
@@ -78,10 +77,39 @@ public class UserService {
     }
 
     public User getUser(final String userId) {
+        checkIdInStorage(Integer.parseInt(userId));
         return getStoredUser(userId);
     }
 
-    private void validate(final User user) {
+    public void checkIdInStorage(Integer userId) {
+        if (userId > increment) {
+            throw new ObjectNotFoundException("Ошибка получения пользователя по id");
+        }
+        if (!inMemoryUserStorage.getAllUsers().contains(getStoredUser(String.valueOf(userId)))) {
+            throw new ObjectNotFoundException("Пользователь не найден!");
+        }
+        for (User users : getAllUsers()) {
+            if (users.getId() == userId) {
+                return;
+            }
+        }
+        throw new ObjectNotFoundException("Пользователь не найден!");
+    }
+
+    public void checkExistence(User user) {
+        if (!getAllUsers().contains(user)) {
+            throw new ObjectNotFoundException("Пользователь не найден!");
+        }
+    }
+
+    private User validate(final User user) {
+        Set<ConstraintViolation<User>> violations = validator.validate(user);
+        if (user == null){
+            throw new ValidationException("Ошибка валидации Пользователя: " + violations);
+        }
+        if (!violations.isEmpty()) {
+            throw new ValidationException("Ошибка валидации Пользователя: " + violations);
+        }
         if (user.getName() == null) {
             user.setName(user.getLogin());
             log.info("UserService: Поле name не задано. Установлено значение {} из поля login", user.getLogin());
@@ -90,13 +118,10 @@ public class UserService {
             log.info("UserService: Поле name не содержит буквенных символов. " +
                     "Установлено значение {} из поля login", user.getLogin());
         }
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        if (!violations.isEmpty()) {
-            throw new ValidationException("Ошибка валидации Пользователя: " + violations);
-        }
         if (user.getId() == 0) {
             user.setId(increment++);
         }
+        return user;
     }
 
     private Integer idFromString(final String supposedId) {

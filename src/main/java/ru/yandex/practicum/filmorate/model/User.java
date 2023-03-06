@@ -36,10 +36,6 @@ public class User {
         this.birthday = birthday;
     }
 
-    public List<Integer> getFriends() {
-        return friends;
-    }
-
     public void addFriend(final Integer id) {
         friends.add(id);
     }

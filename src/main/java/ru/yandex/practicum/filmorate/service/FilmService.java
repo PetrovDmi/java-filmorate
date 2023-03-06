@@ -3,19 +3,21 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
-import javax.validation.ValidationException;
 import javax.validation.Validator;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Set;
 
 @Service
 public class FilmService {
-    private static int increment = 0;
+    private static int increment = 1;
+    private final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
     private final InMemoryFilmStorage filmStorage;
     private final UserService userService;
@@ -32,14 +34,15 @@ public class FilmService {
         return filmStorage.getAllFilms();
     }
 
-    public Film add(Film film) {
+    public void add(Film film) {
         validate(film);
-        return filmStorage.addFilm(film);
+        filmStorage.addFilm(film);
     }
 
-    public Film update(Film film) {
+    public void update(Film film) {
+        checkExistence(film);
         validate(film);
-        return filmStorage.updateFilm(film);
+        filmStorage.updateFilm(film);
     }
 
     public void addLike(final String id, final String userId) {
@@ -71,8 +74,17 @@ public class FilmService {
         if (!violations.isEmpty()) {
             throw new ValidationException("Ошибка валидации Фильма: " + violations);
         }
+        if (!film.getReleaseDate().isAfter(MIN_REALIZE_DATE) && !film.getDescription().isEmpty()) {
+            throw new ValidationException("Ошибка валидации Фильма: " + violations);
+        }
         if (film.getId() == 0) {
             film.setId(getNextId());
+        }
+    }
+
+    public void checkExistence(Film film) {
+        if (!getFilms().contains(film)) {
+            throw new ObjectNotFoundException("Ошибка, фильм не найден");
         }
     }
 

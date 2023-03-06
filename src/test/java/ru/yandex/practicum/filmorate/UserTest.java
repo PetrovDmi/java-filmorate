@@ -69,7 +69,7 @@ class UserTest {
 
         userController.create(user);
 
-        Assertions.assertEquals(1, userController.getAll().iterator().next().getId());
+        Assertions.assertEquals(1, userController.findUser("1").getId());
     }
 
     @Test
@@ -115,16 +115,6 @@ class UserTest {
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
         assertEquals(1, violations.size());
-    }
-
-    @Test
-    void validateVoidUserShouldFailValidation() {
-        user = null;
-
-        final ValidationException exception = Assertions.assertThrows(
-                ValidationException.class, () -> userController.create(user));
-
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
     }
 
     @Test

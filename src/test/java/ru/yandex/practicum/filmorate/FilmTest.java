@@ -16,6 +16,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 
@@ -112,7 +113,7 @@ class FilmTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class, () -> filmController.create(film));
 
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
+        Assertions.assertEquals("Ошибка валидации Фильма: " + filmController.getAll(), exception.getMessage());
     }
 
     @Test
@@ -154,7 +155,7 @@ class FilmTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class, () -> filmController.put(film));
 
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
+        Assertions.assertEquals("Ошибка валидации Фильма: " + new ArrayList<>(), exception.getMessage());
     }
 
     @Test

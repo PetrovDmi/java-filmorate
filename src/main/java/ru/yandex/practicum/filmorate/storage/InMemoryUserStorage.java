@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.CustomException.InternalServerError;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -42,25 +43,34 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    @Override
-    public boolean deleteUser(User user) {
+    public void deleteUser(User user) {
         users.remove(user.getId());
-        return true;
+        if (users.containsKey(user.getId())){
+            throw new InternalServerError("Ошибка удаления пользователя с идентификатором " + user.getId());
+        }
     }
 
-    @Override
-    public boolean addFriend(int userId, int friendId) {
+    public void addFriend(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
         user.addFriend(friendId);
         friend.addFriend(userId);
         updateUser(user);
         updateUser(friend);
-        return true;
+        if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)){
+            throw new InternalServerError("Ошибка добавления друга");
+        }
     }
 
-    @Override
-    public boolean deleteFriend(int userId, int friendId) {
-        return false;
+    public void deleteFriend(int userId, int friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+        user.deleteFriend(friendId);
+        friend.deleteFriend(userId);
+        updateUser(user);
+        updateUser(friend);
+        if (user.getFriends().contains(friendId) && friend.getFriends().contains(userId)){
+            throw new InternalServerError("Ошибка удаления друга");
+        }
     }
 }

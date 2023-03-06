@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -15,7 +14,6 @@ import java.util.HashSet;
 @Slf4j
 @RequestMapping("/users")
 public class UserController extends Controller<User> {
-    private Integer id = 1;
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -25,7 +23,6 @@ public class UserController extends Controller<User> {
     @GetMapping("/{id}")
     public User findUser(@PathVariable String id) {
         log.info("Получен запрос GET к эндпоинту: /users/{}/", id);
-        checkIdInStorage(Integer.parseInt(id));
         return userService.getUser(id);
     }
 
@@ -40,7 +37,6 @@ public class UserController extends Controller<User> {
     @PostMapping
     public User create(@Valid @RequestBody User user) throws ValidationException {
         log.info("Получен запрос POST. Данные тела запроса: {}", user);
-        validate(user);
         userService.add(user);
         log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
         return user;
@@ -50,8 +46,6 @@ public class UserController extends Controller<User> {
     @PutMapping
     public User put(@Valid @RequestBody User user) throws ValidationException {
         log.info("Получен запрос PUT. Данные тела запроса: {}", user);
-        checkExistence(user);
-        validate(user);
         userService.update(user);
         log.info("Обновлен объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
         return user;
@@ -85,43 +79,5 @@ public class UserController extends Controller<User> {
         log.info("Получен запрос DELETE к эндпоинту: /users/{}/friends/{}", id, friendId);
         userService.deleteFriend(id, friendId);
         log.info("Обновлен объект {} с идентификатором {}. Удален друг {}", User.class.getSimpleName(), id, friendId);
-    }
-
-    public Integer getId() {
-        return id++;
-    }
-
-    public void validate(User user) {
-        if (user != null) {
-            if (user.getId() == 0) {
-                user.setId(getId());
-            }
-            if (user.getName() == null || user.getName().isEmpty()) {
-                user.setName(user.getLogin());
-            }
-        } else {
-            throw new ValidationException("Ошибка валидации");
-        }
-    }
-
-    public void checkIdInStorage(Integer userId) {
-        if (userId > id) {
-            throw new ObjectNotFoundException("Ошибка получения пользователя по id");
-        }
-        if (userService.getUser(String.valueOf(userId)) == null) {
-            throw new ObjectNotFoundException("Пользователь не найден!");
-        }
-        for (User users : userService.getAllUsers()) {
-            if (users.getId() == userId) {
-                return;
-            }
-        }
-        throw new ObjectNotFoundException("Пользователь не найден!");
-    }
-
-    public void checkExistence(User user) {
-        if (!userService.getAllUsers().contains(user)) {
-            throw new ObjectNotFoundException("Пользователь не найден!");
-        }
     }
 }
