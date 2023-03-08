@@ -29,6 +29,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
+
         users.put(user.getId(), user);
         return user;
     }
@@ -55,8 +56,6 @@ public class InMemoryUserStorage implements UserStorage {
         User friend = users.get(friendId);
         user.addFriend(friendId);
         friend.addFriend(userId);
-        updateUser(user);
-        updateUser(friend);
         if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)){
             throw new InternalServerError("Ошибка добавления друга");
         }

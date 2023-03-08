@@ -17,7 +17,8 @@ import java.util.Set;
 @Service
 public class FilmService {
     private static int increment = 1;
-    private final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
+    private final int MOST_POPULAR_FILMS_SIZE = 10;
+    private static final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
     private final InMemoryFilmStorage filmStorage;
     private final UserService userService;
@@ -57,10 +58,10 @@ public class FilmService {
         filmStorage.deleteLike(film.getId(), user.getId());
     }
 
-    public Collection<Film> getMostPopularFilms(final String count) {
-        Integer size = intFromString(count);
-        if (size == Integer.MIN_VALUE) {
-            size = 10;
+    public Collection<Film> getMostPopularFilms(String sizeString) {
+        int size = intFromString(sizeString);
+        if (size > 10){
+            size = MOST_POPULAR_FILMS_SIZE;
         }
         return filmStorage.getMostPopularFilms(size);
     }
@@ -102,10 +103,6 @@ public class FilmService {
 
     private Film getStoredFilm(final String supposedId) {
         final int filmId = intFromString(supposedId);
-        if (filmId == Integer.MIN_VALUE) {
-            throw new ObjectNotFoundException("Не удалось распознать идентификатор фильма: " +
-                    "значение " + supposedId);
-        }
         Film film = filmStorage.getFilm(filmId);
         if (film == null) {
             throw new ObjectNotFoundException("Фильм с идентификатором " +

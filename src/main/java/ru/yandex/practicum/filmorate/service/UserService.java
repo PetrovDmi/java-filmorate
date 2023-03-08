@@ -10,9 +10,8 @@ import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -62,17 +61,14 @@ public class UserService {
     }
 
     public Collection<User> getCommonFriends(final String supposedUserId, final String supposedOtherId) {
-        Collection<User> commonFriends = new HashSet<>();
+        Collection<User> commonFriends;
         User user = getStoredUser(supposedUserId);
-        if (user.getFriends() == null) {
-            return commonFriends;
-        }
         User otherUser = getStoredUser(supposedOtherId);
-        for (Integer id : user.getFriends()) {
-            if (otherUser.getFriends().contains(id)) {
-                commonFriends.add(inMemoryUserStorage.getUser(id));
-            }
-        }
+
+        commonFriends = user.getFriends().stream()
+                .filter(id -> otherUser.getFriends().contains(id))
+                .map(inMemoryUserStorage::getUser)
+                .collect(Collectors.toCollection(ArrayList::new));
         return commonFriends;
     }
 
@@ -88,12 +84,11 @@ public class UserService {
         if (!inMemoryUserStorage.getAllUsers().contains(getStoredUser(String.valueOf(userId)))) {
             throw new ObjectNotFoundException("Пользователь не найден!");
         }
-        for (User users : getAllUsers()) {
-            if (users.getId() == userId) {
-                return;
-            }
+        boolean isNotError = getAllUsers().stream()
+                .anyMatch(user -> user.getId() == userId);
+        if (!isNotError) {
+            throw new ObjectNotFoundException("Пользователь не найден!");
         }
-        throw new ObjectNotFoundException("Пользователь не найден!");
     }
 
     public void checkExistence(User user) {
@@ -104,7 +99,7 @@ public class UserService {
 
     private User validate(final User user) {
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        if (user == null){
+        if (user == null) {
             throw new ValidationException("Ошибка валидации Пользователя: " + violations);
         }
         if (!violations.isEmpty()) {

@@ -54,27 +54,32 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public void addLike(int filmId, int userId) {
-        if (!films.containsKey(filmId)) {
-            throw new ObjectNotFoundException("Фильм не найден!");
-        }
+        checkFilmExistence(filmId);
         Film film = films.get(filmId);
         film.addLike(userId);
-        if (!film.getLikes().contains(userId)) {
-            throw new ObjectNotFoundException("Лайк не добавлен!");
-        }
+        checkLikeMark(filmId, userId);
         updateFilm(film);
     }
 
     @Override
     public void deleteLike(int filmId, int userId) {
-        if (!films.containsKey(filmId)) {
-            throw new ObjectNotFoundException("Фильм не найден!");
-        }
+        checkFilmExistence(filmId);
+        checkLikeMark(filmId, userId);
+        Film film = films.get(filmId);
+        film.getLikes().remove(userId);
+    }
+
+    public void checkLikeMark (int filmId, int userId) {
         Film film = films.get(filmId);
         if (!film.getLikes().contains(userId)) {
             throw new ObjectNotFoundException("Лайк не найден!");
         }
-        film.getLikes().remove(userId);
+    }
+
+    public void checkFilmExistence (int filmId) {
+        if (!films.containsKey(filmId)) {
+            throw new ObjectNotFoundException("Фильм не найден!");
+        }
     }
 
     @Override

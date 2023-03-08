@@ -3,13 +3,13 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.CustomException.ErrorResponse;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Map;
 
@@ -30,7 +30,7 @@ public class FilmController extends Controller<Film> {
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) throws ValidationException {
+    public Film create(@Valid @RequestBody Film film) {
         log.info("Получен запрос POST. Данные тела запроса: {}", film);
         filmService.add(film);
         log.info("Создан объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
@@ -38,7 +38,7 @@ public class FilmController extends Controller<Film> {
     }
 
     @PutMapping
-    public Film put(@Valid @RequestBody Film film) throws ObjectNotFoundException, ValidationException {
+    public Film put(@Valid @RequestBody Film film) {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
         filmService.update(film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
@@ -75,20 +75,20 @@ public class FilmController extends Controller<Film> {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleRuntimeException(final RuntimeException e) {
-        return Map.of("Обнаружена критическая ошибка: ", e.getMessage());
+    public ErrorResponse handleRuntimeException(final RuntimeException e) {
+        return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> handleObjectNotFound(final ObjectNotFoundException e) {
-        return Map.of("Обьект не найден: ", e.getMessage());
+    public ErrorResponse handleObjectNotFound(final ObjectNotFoundException e) {
+        return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidationException(final ValidationException e) {
-        return Map.of("Ошибка валидации: ", e.getMessage());
+    public ErrorResponse handleValidationException(final ValidationException e) {
+        return new ErrorResponse(e.getMessage());
     }
 }
 

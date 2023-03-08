@@ -1,7 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.CustomException.ErrorResponse;
+import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -67,10 +70,6 @@ public class UserController extends Controller<User> {
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> findCommonFriends(@PathVariable String id, @PathVariable String otherId) {
         log.info("Получен запрос GET к эндпоинту: /users/{}/friends/common/{}", id, otherId);
-        Collection<User> collection = new HashSet<>();
-        if (userService.getAllUsers().size() == 0) {
-            return collection;
-        }
         return userService.getCommonFriends(id, otherId);
     }
 
@@ -79,5 +78,23 @@ public class UserController extends Controller<User> {
         log.info("Получен запрос DELETE к эндпоинту: /users/{}/friends/{}", id, friendId);
         userService.deleteFriend(id, friendId);
         log.info("Обновлен объект {} с идентификатором {}. Удален друг {}", User.class.getSimpleName(), id, friendId);
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleRuntimeException(final RuntimeException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleObjectNotFound(final ObjectNotFoundException e) {
+        return new ErrorResponse(e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(final ValidationException e) {
+        return new ErrorResponse(e.getMessage());
     }
 }

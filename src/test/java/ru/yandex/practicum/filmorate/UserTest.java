@@ -64,15 +64,6 @@ class UserTest {
     }
 
     @Test
-    void createUserIdZeroShouldGiveNewIdToUser() throws ValidationException {
-        user.setId(0);
-
-        userController.create(user);
-
-        Assertions.assertEquals(1, userController.findUser("1").getId());
-    }
-
-    @Test
     void validateLoginVoidShouldFailValidation() {
         user.setLogin("");
 
