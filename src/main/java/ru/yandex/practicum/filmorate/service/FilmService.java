@@ -17,7 +17,6 @@ import java.util.Set;
 @Service
 public class FilmService {
     private static int increment = 1;
-    private final int MOST_POPULAR_FILMS_SIZE = 10;
     private static final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
     private final InMemoryFilmStorage filmStorage;
@@ -60,9 +59,6 @@ public class FilmService {
 
     public Collection<Film> getMostPopularFilms(String sizeString) {
         int size = intFromString(sizeString);
-        if (size > 10){
-            size = MOST_POPULAR_FILMS_SIZE;
-        }
         return filmStorage.getMostPopularFilms(size);
     }
 

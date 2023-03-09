@@ -58,7 +58,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         Film film = films.get(filmId);
         film.addLike(userId);
         checkLikeMark(filmId, userId);
-        updateFilm(film);
     }
 
     @Override

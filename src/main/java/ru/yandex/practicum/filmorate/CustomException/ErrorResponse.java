@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.CustomException;
 
 public class ErrorResponse {
-    String description;
+    private final String description;
 
     public ErrorResponse(String description) {
         this.description = description;

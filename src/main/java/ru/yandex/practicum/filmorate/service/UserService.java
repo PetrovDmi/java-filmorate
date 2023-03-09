@@ -54,9 +54,12 @@ public class UserService {
     public Collection<User> getFriends(final String supposedUserId) {
         User user = getStoredUser(supposedUserId);
         Collection<User> friends = new HashSet<>();
-        for (Integer id : user.getFriends()) {
+        /*for (Integer id : user.getFriends()) {
             friends.add(inMemoryUserStorage.getUser(id));
-        }
+        }*/
+        friends = user.getFriends().stream()
+                .map(inMemoryUserStorage::getUser)
+                .collect(Collectors.toCollection(ArrayList::new));
         return friends;
     }
 
@@ -64,11 +67,10 @@ public class UserService {
         Collection<User> commonFriends;
         User user = getStoredUser(supposedUserId);
         User otherUser = getStoredUser(supposedOtherId);
-
         commonFriends = user.getFriends().stream()
                 .filter(id -> otherUser.getFriends().contains(id))
                 .map(inMemoryUserStorage::getUser)
-                .collect(Collectors.toCollection(ArrayList::new));
+                .collect(Collectors.toList());
         return commonFriends;
     }
 
@@ -99,10 +101,7 @@ public class UserService {
 
     private User validate(final User user) {
         Set<ConstraintViolation<User>> violations = validator.validate(user);
-        if (user == null) {
-            throw new ValidationException("Ошибка валидации Пользователя: " + violations);
-        }
-        if (!violations.isEmpty()) {
+        if (user == null || !violations.isEmpty()) {
             throw new ValidationException("Ошибка валидации Пользователя: " + violations);
         }
         if (user.getName() == null) {

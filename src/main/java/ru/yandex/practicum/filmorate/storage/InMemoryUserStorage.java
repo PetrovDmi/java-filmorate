@@ -29,7 +29,6 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User addUser(User user) {
-
         users.put(user.getId(), user);
         return user;
     }
@@ -46,7 +45,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     public void deleteUser(User user) {
         users.remove(user.getId());
-        if (users.containsKey(user.getId())){
+        if (users.containsKey(user.getId())) {
             throw new InternalServerError("Ошибка удаления пользователя с идентификатором " + user.getId());
         }
     }
@@ -54,9 +53,10 @@ public class InMemoryUserStorage implements UserStorage {
     public void addFriend(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
-        user.addFriend(friendId);
-        friend.addFriend(userId);
-        if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)){
+        if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)) {
+            user.addFriend(friendId);
+            friend.addFriend(userId);
+        } else {
             throw new InternalServerError("Ошибка добавления друга");
         }
     }
@@ -64,11 +64,10 @@ public class InMemoryUserStorage implements UserStorage {
     public void deleteFriend(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
-        user.deleteFriend(friendId);
-        friend.deleteFriend(userId);
-        updateUser(user);
-        updateUser(friend);
-        if (user.getFriends().contains(friendId) && friend.getFriends().contains(userId)){
+        if (user.getFriends().contains(friendId) && friend.getFriends().contains(userId)) {
+            user.deleteFriend(friendId);
+            friend.deleteFriend(userId);
+        } else {
             throw new InternalServerError("Ошибка удаления друга");
         }
     }
