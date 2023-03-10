@@ -34,6 +34,11 @@ public class UserService {
         return inMemoryUserStorage.getAllUsers();
     }
 
+    public User getUser(final String userId) {
+        checkIdInStorage(Integer.parseInt(userId));
+        return getStoredUser(userId);
+    }
+
     public void update(final User user) {
         checkExistence(user);
         inMemoryUserStorage.updateUser(validate(user));
@@ -53,33 +58,21 @@ public class UserService {
 
     public Collection<User> getFriends(final String supposedUserId) {
         User user = getStoredUser(supposedUserId);
-        Collection<User> friends = new HashSet<>();
-        /*for (Integer id : user.getFriends()) {
-            friends.add(inMemoryUserStorage.getUser(id));
-        }*/
-        friends = user.getFriends().stream()
+        return user.getFriends().stream()
                 .map(inMemoryUserStorage::getUser)
-                .collect(Collectors.toCollection(ArrayList::new));
-        return friends;
+                .collect(Collectors.toList());
     }
 
     public Collection<User> getCommonFriends(final String supposedUserId, final String supposedOtherId) {
-        Collection<User> commonFriends;
         User user = getStoredUser(supposedUserId);
         User otherUser = getStoredUser(supposedOtherId);
-        commonFriends = user.getFriends().stream()
+        return user.getFriends().stream()
                 .filter(id -> otherUser.getFriends().contains(id))
                 .map(inMemoryUserStorage::getUser)
                 .collect(Collectors.toList());
-        return commonFriends;
     }
 
-    public User getUser(final String userId) {
-        checkIdInStorage(Integer.parseInt(userId));
-        return getStoredUser(userId);
-    }
-
-    public void checkIdInStorage(Integer userId) {
+    private void checkIdInStorage(Integer userId) {
         if (userId > increment) {
             throw new ObjectNotFoundException("Ошибка получения пользователя по id");
         }
@@ -104,10 +97,7 @@ public class UserService {
         if (user == null || !violations.isEmpty()) {
             throw new ValidationException("Ошибка валидации Пользователя: " + violations);
         }
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
-            log.info("UserService: Поле name не задано. Установлено значение {} из поля login", user.getLogin());
-        } else if (user.getName().isEmpty() || user.getName().isBlank()) {
+        if (user.getName().isEmpty() || user.getName().isBlank()) {
             user.setName(user.getLogin());
             log.info("UserService: Поле name не содержит буквенных символов. " +
                     "Установлено значение {} из поля login", user.getLogin());

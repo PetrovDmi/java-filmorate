@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.HashSet;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -86,6 +85,6 @@ public class InMemoryFilmStorage implements FilmStorage {
         return getAllFilms().stream()
                 .sorted((f1, f2) -> f2.getLikes().size() - f1.getLikes().size())
                 .limit(size)
-                .collect(Collectors.toCollection(HashSet::new));
+                .collect(Collectors.toSet());
     }
 }

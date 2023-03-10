@@ -40,8 +40,8 @@ public class User {
         friends.add(id);
     }
 
-    public boolean deleteFriend(final Integer id) {
-        return friends.remove(id);
+    public void deleteFriend(final Integer id) {
+        friends.remove(id);
     }
 
     @Override

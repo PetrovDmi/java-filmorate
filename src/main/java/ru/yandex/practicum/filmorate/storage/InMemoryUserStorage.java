@@ -28,19 +28,17 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User addUser(User user) {
+    public void addUser(User user) {
         users.put(user.getId(), user);
-        return user;
     }
 
     @Override
-    public User updateUser(User user) {
+    public void updateUser(User user) {
         if (!getAllUsers().contains(user)) {
             throw new ObjectNotFoundException("Пользователь с идентификатором " +
                     user.getId() + " не зарегистрирован!");
         }
         users.put(user.getId(), user);
-        return user;
     }
 
     public void deleteUser(User user) {
@@ -53,7 +51,7 @@ public class InMemoryUserStorage implements UserStorage {
     public void addFriend(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
-        if (!user.getFriends().contains(friendId) && !friend.getFriends().contains(userId)) {
+        if (!checkFriendIsFriendToEachOther(userId, friendId)) {
             user.addFriend(friendId);
             friend.addFriend(userId);
         } else {
@@ -64,11 +62,17 @@ public class InMemoryUserStorage implements UserStorage {
     public void deleteFriend(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
-        if (user.getFriends().contains(friendId) && friend.getFriends().contains(userId)) {
+        if (checkFriendIsFriendToEachOther(userId, friendId)) {
             user.deleteFriend(friendId);
             friend.deleteFriend(userId);
         } else {
             throw new InternalServerError("Ошибка удаления друга");
         }
+    }
+
+    private boolean checkFriendIsFriendToEachOther(int userId, int friendId) {
+        User user = users.get(userId);
+        User friend = users.get(friendId);
+        return  user.getFriends().contains(friendId) && friend.getFriends().contains(userId);
     }
 }

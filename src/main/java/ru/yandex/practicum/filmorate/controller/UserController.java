@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.HashSet;
 
 @RestController
 @Slf4j
@@ -38,7 +37,7 @@ public class UserController extends Controller<User> {
 
     @Override
     @PostMapping
-    public User create(@Valid @RequestBody User user) throws ValidationException {
+    public User create(@Valid @RequestBody User user) {
         log.info("Получен запрос POST. Данные тела запроса: {}", user);
         userService.add(user);
         log.info("Создан объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
@@ -47,7 +46,7 @@ public class UserController extends Controller<User> {
 
     @Override
     @PutMapping
-    public User put(@Valid @RequestBody User user) throws ValidationException {
+    public User put(@Valid @RequestBody User user) {
         log.info("Получен запрос PUT. Данные тела запроса: {}", user);
         userService.update(user);
         log.info("Обновлен объект {} с идентификатором {}", User.class.getSimpleName(), user.getId());
