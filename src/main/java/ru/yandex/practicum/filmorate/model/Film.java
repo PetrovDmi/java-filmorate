@@ -4,8 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Objects;
 
 @Data
@@ -22,6 +26,23 @@ public class Film {
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма не может быть отрицательной. ")
     private long duration;
+    private HashSet<Integer> likes = new HashSet<>();
+
+    public Film(int id, String name, String description, LocalDate releaseDate, long duration) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
+
+    public void addLike(Integer userId) {
+        likes.add(userId);
+    }
+
+    public boolean deleteLike(Integer userId) {
+        return likes.remove(userId);
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -3,17 +3,20 @@ package ru.yandex.practicum.filmorate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 
@@ -24,12 +27,14 @@ class FilmTest {
     private Validator validator;
     private Film film;
     FilmController filmController;
+    @Autowired
+    private FilmService service;
 
     @BeforeEach
     public void initBeforeEach() {
         ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
         validator = validatorFactory.usingContext().getValidator();
-        filmController = new FilmController();
+        filmController = new FilmController(service);
         film = new Film(1, "Тихоокеанский рубеж", "О роботах",
                 LocalDate.of(2013, 6, 11), 131);
     }
@@ -108,7 +113,7 @@ class FilmTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class, () -> filmController.create(film));
 
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
+        Assertions.assertEquals("Ошибка валидации Фильма: " + filmController.getAll(), exception.getMessage());
     }
 
     @Test
@@ -150,7 +155,7 @@ class FilmTest {
         final ValidationException exception = Assertions.assertThrows(
                 ValidationException.class, () -> filmController.put(film));
 
-        Assertions.assertEquals("Ошибка валидации", exception.getMessage());
+        Assertions.assertEquals("Ошибка валидации Фильма: " + new ArrayList<>(), exception.getMessage());
     }
 
     @Test

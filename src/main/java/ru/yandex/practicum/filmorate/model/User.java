@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -24,6 +26,23 @@ public class User {
 
     @PastOrPresent(message = "Дата рождения не может быть в будущем.")
     private LocalDate birthday;
+    private List<Integer> friends = new ArrayList<>();
+
+    public User(int id, String login, String name, String email, LocalDate birthday) {
+        this.id = id;
+        this.login = login;
+        this.name = name;
+        this.email = email;
+        this.birthday = birthday;
+    }
+
+    public void addFriend(final Integer id) {
+        friends.add(id);
+    }
+
+    public void deleteFriend(final Integer id) {
+        friends.remove(id);
+    }
 
     @Override
     public boolean equals(Object o) {
