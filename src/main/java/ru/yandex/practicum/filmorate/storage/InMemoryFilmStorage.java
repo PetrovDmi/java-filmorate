@@ -60,11 +60,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void deleteLike(int filmId, int userId) {
+    public boolean deleteLike(int filmId, int userId) {
         checkFilmExistence(filmId);
         checkLikeMark(filmId, userId);
         Film film = films.get(filmId);
         film.getLikes().remove(userId);
+        return false;
     }
 
     public void checkLikeMark (int filmId, int userId) {
