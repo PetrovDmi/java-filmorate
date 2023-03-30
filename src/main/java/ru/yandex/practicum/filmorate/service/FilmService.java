@@ -1,11 +1,15 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.DAO.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
@@ -19,11 +23,11 @@ public class FilmService {
     private static int increment = 1;
     private static final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
-    private final InMemoryFilmStorage filmStorage;
+    private final FilmDbStorage filmStorage;
     private final UserService userService;
 
     @Autowired
-    public FilmService(Validator validator, InMemoryFilmStorage filmStorage,
+    public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmDbStorage filmStorage,
                        @Autowired(required = false) UserService userService) {
         this.validator = validator;
         this.filmStorage = filmStorage;
@@ -105,5 +109,21 @@ public class FilmService {
                     filmId + " не зарегистрирован!");
         }
         return film;
+    }
+
+    public Collection<Genre> getAllGenres() {
+        return filmStorage.getAllGenres();
+    }
+
+    public Genre getGenre(int id) {
+        return filmStorage.getGenre(id);
+    }
+
+    public Collection<Mpa> getAllMpa() {
+        return filmStorage.getAllMpa();
+    }
+
+    public Mpa getMpa(int id) {
+        return filmStorage.getMpa(id);
     }
 }

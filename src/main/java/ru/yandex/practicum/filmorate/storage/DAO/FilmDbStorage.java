@@ -10,6 +10,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -25,6 +26,46 @@ public class FilmDbStorage implements FilmStorage {
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public Genre getGenre(int id) {
+        String sqlGenre = "select * " +
+                "from Genre " +
+                "where genreId = ?";
+        Genre genre;
+        try {
+            genre = jdbcTemplate.queryForObject(sqlGenre, (rs, rowNum) -> makeGenre(rs), id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ObjectNotFoundException("Жанр с идентификатором " +
+                    id + " не зарегистрирован!");
+        }
+        log.info("Найден фильм: {} {}", genre.getId(), genre.getName());
+        return genre;
+    }
+
+    public Mpa getMpa(int id) {
+        String sqlGenre = "select * " +
+                "from Mpa " +
+                "where mpaId = ?";
+        Mpa mpa;
+        try {
+            mpa = jdbcTemplate.queryForObject(sqlGenre, (rs, rowNum) -> makeMpa(rs), id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ObjectNotFoundException("Жанр с идентификатором " +
+                    id + " не зарегистрирован!");
+        }
+        log.info("Найден фильм: {} {}", mpa.getId(), mpa.getName());
+        return mpa;
+    }
+
+    private Genre makeGenre(ResultSet resultSet) throws SQLException {
+        int genreId = resultSet.getInt("genreId");
+        return new Genre(genreId, resultSet.getString("genreName"));
+    }
+
+    private Mpa makeMpa(ResultSet resultSet) throws SQLException {
+        int mpaId = resultSet.getInt("mpaId");
+        return new Mpa(mpaId, resultSet.getString("name"));
     }
 
     @Override
@@ -51,6 +92,16 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (resultSet, rowNum) -> makeFilm(resultSet));
     }
 
+    public Collection<Genre> getAllGenres() {
+        String sql = "select * from Genre";
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> makeGenre(resultSet));
+    }
+
+    public Collection<Mpa> getAllMpa() {
+        String sql = "select * from Mpa";
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> makeMpa(resultSet));
+    }
+
     @Override
     public Film addFilm(Film film) {
         String sqlQuery = "insert into Film " +
@@ -69,11 +120,6 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        if (film.getLikes() != null) {
-            for (Integer userId : film.getLikes()) {
-                addLike(film.getId(), userId);
-            }
-        }
         return getFilm(id);
     }
 
@@ -101,10 +147,9 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public boolean deleteLike(int filmId, int userId) {
+    public void deleteLike(int filmId, int userId) {
         String deleteLike = "delete from Likes where filmId = ? and userId = ?";
         jdbcTemplate.update(deleteLike, filmId, userId);
-        return true;
     }
 
     @Override

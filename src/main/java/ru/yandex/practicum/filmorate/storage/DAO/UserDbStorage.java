@@ -24,7 +24,7 @@ public class UserDbStorage implements UserStorage {
     }
     @Override
     public User getUser(Integer id) {
-        String sqlUser = "select * from User where userId = ?";
+        String sqlUser = "select * from Users where userId = ?";
         User user;
         try {
             user = jdbcTemplate.queryForObject(sqlUser, (rs, rowNum) -> makeUser(rs), id);
@@ -38,13 +38,13 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> getAllUsers() {
-        String sqlAllUsers = "select * from User";
+        String sqlAllUsers = "select * from Users";
         return jdbcTemplate.query(sqlAllUsers, (rs, rowNum) -> makeUser(rs));
     }
 
     @Override
     public void addUser(User user) {
-        String sqlQuery = "insert into User " +
+        String sqlQuery = "insert into Users " +
                 "(email, login, name, birthday ) " +
                 "values (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -57,19 +57,11 @@ public class UserDbStorage implements UserStorage {
 
             return preparedStatement;
         }, keyHolder);
-
-        int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
-
-        if (user.getFriends() != null) {
-            for (Integer friendId : user.getFriends()) {
-                addFriend(user.getId(), friendId);
-            }
-        }
     }
 
     @Override
     public void updateUser(User user) {
-        String sqlUser = "update User set " +
+        String sqlUser = "update Users set " +
                 "email = ?, login = ?, name = ?, birthday = ? " +
                 "where userId = ?";
         jdbcTemplate.update(sqlUser,
@@ -97,7 +89,7 @@ public class UserDbStorage implements UserStorage {
         return jdbcTemplate.queryForList(sqlGetFriends, Integer.class, userId);
     }
 
-    public boolean addFriend(int userId, int friendId) {
+    public void addFriend(int userId, int friendId) {
         boolean friendAccepted;
         String sqlGetReversFriend = "select * from UserFriends " +
                 "where userId = ? and friendId = ?";
@@ -106,20 +98,13 @@ public class UserDbStorage implements UserStorage {
         String sqlSetFriend = "insert into UserFriends (userId, friendId, status) " +
                 "VALUES (?,?,?)";
         jdbcTemplate.update(sqlSetFriend, userId, friendId, friendAccepted);
-        if (friendAccepted) {
-            String sqlSetStatus = "update UserFriends set status = 1 " +
-                    "where userId = ? and friendId = ?";
-            jdbcTemplate.update(sqlSetStatus, friendId, userId);
-        }
-        return true;
     }
 
-    public boolean deleteFriend(int userId, int friendId) {
+    public void deleteFriend(int userId, int friendId) {
         String sqlDeleteFriend = "delete from UserFriends where userId = ? and friendId = ?";
         jdbcTemplate.update(sqlDeleteFriend, userId, friendId);
         String sqlSetStatus = "update UserFriends set status = false " +
                 "where userId = ? and friendId = ?";
         jdbcTemplate.update(sqlSetStatus, friendId, userId);
-        return true;
     }
 }
