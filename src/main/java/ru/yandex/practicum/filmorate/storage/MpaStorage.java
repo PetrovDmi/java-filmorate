@@ -9,3 +9,4 @@ public interface MpaStorage {
 
     Mpa getMpaById(int mpaId);
 }
+

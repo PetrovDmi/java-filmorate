@@ -13,3 +13,4 @@ public interface UserStorage {
 
     void updateUser(User user);
 }
+
