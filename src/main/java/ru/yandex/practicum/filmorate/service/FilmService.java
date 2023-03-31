@@ -16,7 +16,10 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -61,9 +64,13 @@ public class FilmService {
         filmStorage.deleteLike(film.getId(), user.getId());
     }
 
-    public Collection<Film> getMostPopularFilms(String sizeString) {
-        int size = intFromString(sizeString);
-        return filmStorage.getMostPopularFilms(size);
+    public List<Film> getMostPopularFilms(int counter) {
+        return filmStorage.getAllFilms().stream()
+                .sorted((Film filmOne, Film filmTwo) ->
+                        filmTwo.getLikes().size() - filmOne.getLikes().size())
+                .sorted(Collections.reverseOrder())
+                .limit(counter)
+                .collect(Collectors.toList());
     }
 
     public Film getFilm(String id) {

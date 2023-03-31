@@ -18,13 +18,16 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.*;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component("FilmDbStorage")
 public class FilmDbStorage implements FilmStorage {
     private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
     private final JdbcTemplate jdbcTemplate;
+    private FilmStorage filmStorage;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -144,7 +147,6 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQueryDeleteGenre = "DELETE FROM filmGenres WHERE filmId = ?";
         String sqlQueryDeleteLikes = "DELETE FROM Likes WHERE filmId = ?";
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
             preparedStatement.setString(1, film.getName());
@@ -154,7 +156,7 @@ public class FilmDbStorage implements FilmStorage {
             preparedStatement.setInt(5, film.getMpa().getId());
             preparedStatement.setInt(6, film.getId());
             return preparedStatement;
-        }, keyHolder);
+        });
         jdbcTemplate.update(sqlQueryDeleteLikes, film.getId());
         jdbcTemplate.update(sqlQueryDeleteGenre, film.getId());
 
@@ -166,8 +168,7 @@ public class FilmDbStorage implements FilmStorage {
             jdbcTemplate.update(sqlQueryLike, film.getId(), like);
         }
 
-        int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
-        return getFilm(id);
+        return film;
     }
 
     @Override
@@ -192,19 +193,6 @@ public class FilmDbStorage implements FilmStorage {
     public void deleteLike(int filmId, int userId) {
         String deleteLike = "delete from Likes where filmId = ? and userId = ?";
         jdbcTemplate.update(deleteLike, filmId, userId);
-    }
-
-    @Override
-    public Collection<Film> getMostPopularFilms(int count) {
-        String sqlMostPopular = "select count(L.like) as likeRate" +
-                ",Film.FILMID" +
-                ",Film.name ,Film.description ,releaseDate ,duration ,rate ,R.ratingId, R.name, R.description from Film " +
-                "left join Likes L on L.filmId = Film.filmId " +
-                "inner join Mpa R on R.ratingId = Film.ratingId " +
-                "group by Film.filmId " +
-                "ORDER BY likeRate desc " +
-                "limit ?";
-        return jdbcTemplate.query(sqlMostPopular, (rs, rowNum) -> makeFilm(rs), count);
     }
 
     private Film makeFilm(ResultSet resultSet) throws SQLException {
