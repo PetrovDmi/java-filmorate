@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.DAO.UserDbStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
@@ -18,20 +19,20 @@ import java.util.stream.Collectors;
 public class UserService {
     private int increment = 1;
     private final Validator validator;
-    private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserDbStorage userDbStorage;
 
     @Autowired
-    public UserService(Validator validator, InMemoryUserStorage userStorage) {
+    public UserService(Validator validator, InMemoryUserStorage userStorage, UserDbStorage userDbStorage) {
         this.validator = validator;
-        this.inMemoryUserStorage = userStorage;
+        this.userDbStorage = userDbStorage;
     }
 
     public void add(final User user) {
-        inMemoryUserStorage.addUser(validate(user));
+        userDbStorage.addUser(validate(user));
     }
 
     public Collection<User> getAllUsers() {
-        return inMemoryUserStorage.getAllUsers();
+        return userDbStorage.getAllUsers();
     }
 
     public User getUser(final String userId) {
@@ -41,25 +42,25 @@ public class UserService {
 
     public void update(final User user) {
         checkExistence(user);
-        inMemoryUserStorage.updateUser(validate(user));
+        userDbStorage.updateUser(validate(user));
     }
 
     public void addFriend(final String supposedUserId, final String supposedFriendId) {
         User user = getStoredUser(supposedUserId);
         User friend = getStoredUser(supposedFriendId);
-        inMemoryUserStorage.addFriend(user.getId(), friend.getId());
+        userDbStorage.addFriend(user.getId(), friend.getId());
     }
 
     public void deleteFriend(final String supposedUserId, final String supposedFriendId) {
         User user = getStoredUser(supposedUserId);
         User friend = getStoredUser(supposedFriendId);
-        inMemoryUserStorage.deleteFriend(user.getId(), friend.getId());
+        userDbStorage.deleteFriend(user.getId(), friend.getId());
     }
 
     public Collection<User> getFriends(final String supposedUserId) {
         User user = getStoredUser(supposedUserId);
         return user.getFriends().stream()
-                .map(inMemoryUserStorage::getUser)
+                .map(userDbStorage::getUser)
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +69,7 @@ public class UserService {
         User otherUser = getStoredUser(supposedOtherId);
         return user.getFriends().stream()
                 .filter(id -> otherUser.getFriends().contains(id))
-                .map(inMemoryUserStorage::getUser)
+                .map(userDbStorage::getUser)
                 .collect(Collectors.toList());
     }
 
@@ -76,7 +77,7 @@ public class UserService {
         if (userId > increment) {
             throw new ObjectNotFoundException("Ошибка получения пользователя по id");
         }
-        if (!inMemoryUserStorage.getAllUsers().contains(getStoredUser(String.valueOf(userId)))) {
+        if (!userDbStorage.getAllUsers().contains(getStoredUser(String.valueOf(userId)))) {
             throw new ObjectNotFoundException("Пользователь не найден!");
         }
         boolean isNotError = getAllUsers().stream()
@@ -121,7 +122,7 @@ public class UserService {
         if (userId == Integer.MIN_VALUE) {
             throw new ObjectNotFoundException("Не удалось распознать идентификатор пользователя: " + "значение " + supposedId);
         }
-        User user = inMemoryUserStorage.getUser(userId);
+        User user = userDbStorage.getUser(userId);
         if (user == null) {
             throw new ObjectNotFoundException("Пользователь с идентификатором " + userId + " не зарегистрирован!");
         }

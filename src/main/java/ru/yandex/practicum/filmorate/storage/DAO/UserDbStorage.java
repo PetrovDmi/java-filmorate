@@ -77,9 +77,9 @@ public class UserDbStorage implements UserStorage {
         int userId = resultSet.getInt("UserID");
         return new User(
                 userId,
-                resultSet.getString("Email"),
                 resultSet.getString("Login"),
                 resultSet.getString("Name"),
+                resultSet.getString("Email"),
                 Objects.requireNonNull(resultSet.getDate("BirthDay")).toLocalDate(),
                 getUserFriends(userId));
     }

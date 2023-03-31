@@ -1,13 +1,9 @@
-ALTER TABLE User ALTER COLUMN userId RESTART WITH 1;
-ALTER TABLE Film ALTER COLUMN filmId RESTART WITH 1;
-ALTER TABLE Genre ALTER COLUMN genreId RESTART WITH 1;
-
 MERGE INTO Mpa KEY(mpaId)
-    VALUES (1, 'G', 'Нет возрастных ограничений'),
-           (2, 'PG', 'Рекомендуется присутствие родителей'),
-           (3, 'PG-13', 'Детям до 13 лет просмотр не желателен'),
-           (4, 'R', 'Лицам до 17 лет обязательно присутствие взрослого'),
-           (5, 'NC-17', 'Лицам до 18 лет просмотр запрещен');
+    VALUES (1, 'G'),
+           (2, 'PG'),
+           (3, 'PG-13'),
+           (4, 'R'),
+           (5, 'NC-17');
 
 MERGE INTO Genre KEY(genreId)
     VALUES (1, 'Комедия'),

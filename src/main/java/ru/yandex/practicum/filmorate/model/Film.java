@@ -25,24 +25,33 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма не может быть отрицательной. ")
-    private long duration;
-    private int rate;
+    private int duration;
     @NotNull
     private Mpa mpa;
     private HashSet<Integer> likes = new HashSet<>();
-    private Set<Integer> genres = new HashSet<>();
+    private List<FilmGenre> genres = new ArrayList<>();
 
-    public Film(int id, String name, String description, LocalDate releaseDate, long duration, int rate, @NotNull Mpa mpa) {
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration, @NotNull Mpa mpa) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
-        this.rate = rate;
         this.mpa = mpa;
     }
 
-    public Film(int id, String name, String description, LocalDate releaseDate, long duration) {
+    public Film(int id, Film film) {
+        this.id = id;
+        this.name = film.name;
+        this.description = film.description;
+        this.releaseDate = film.releaseDate;
+        this.duration = film.duration;
+        this.mpa = film.getMpa();
+        this.genres = new ArrayList<>(film.getGenres());
+        this.likes = new HashSet<>(film.getLikes());
+    }
+
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;
         this.name = name;
         this.description = description;
