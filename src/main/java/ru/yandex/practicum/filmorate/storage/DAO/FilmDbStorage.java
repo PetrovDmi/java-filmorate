@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.DAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.relational.core.sql.Select;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,18 +15,14 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.sql.Date;
 import java.sql.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Component("FilmDbStorage")
 public class FilmDbStorage implements FilmStorage {
     private final Logger log = LoggerFactory.getLogger(FilmDbStorage.class);
     private final JdbcTemplate jdbcTemplate;
-    private FilmStorage filmStorage;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -146,7 +141,6 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQueryLike = "INSERT INTO Likes (filmId,userId)  VALUES (?,?)";
         String sqlQueryDeleteGenre = "DELETE FROM filmGenres WHERE filmId = ?";
         String sqlQueryDeleteLikes = "DELETE FROM Likes WHERE filmId = ?";
-
         jdbcTemplate.update(connection -> {
             PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
             preparedStatement.setString(1, film.getName());
@@ -204,15 +198,32 @@ public class FilmDbStorage implements FilmStorage {
                 Objects.requireNonNull(resultSet.getDate("ReleaseDate")).toLocalDate(),
                 resultSet.getInt("Duration"),
                 new Mpa(resultSet.getInt("mpa"),
-                        getMpaName(resultSet.getInt("mpa"))));
+                        getMpaName(resultSet.getInt("mpa"))),
+                getFilmLikes(filmId),
+                getFilmGenres(filmId));
     }
 
-    private List<Integer> getFilmLikes(int filmId) {
-        String sqlGetLikes = "select userId from Likes where filmId = ?";
-        return jdbcTemplate.queryForList(sqlGetLikes, Integer.class, filmId);
+    private List<FilmGenre> getFilmGenres(int id) {
+        String sqlQuery = "SELECT * FROM Genre WHERE genreId IN "
+                + "(SELECT genreId FROM FilmGenres WHERE filmId = ?)";
+        return new ArrayList<>(jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) -> new FilmGenre(rs.getInt("genreId"),
+                        rs.getString("genreName")), id)) {
+        };
     }
 
-    private String getMpaName (int mpaId){
+    private HashSet<Integer> getFilmLikes(int id) {
+        String sqlQuery = "SELECT userId FROM Likes WHERE filmId = ?";
+        return new HashSet<>(jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) -> rs.getInt("userId"), id));
+    }
+
+    private List<FilmGenre> getFilmGenre(int filmId) {
+        String sqlGetLikes = "select userId from Genre where genreId = ?";
+        return jdbcTemplate.queryForList(sqlGetLikes, FilmGenre.class, filmId);
+    }
+
+    private String getMpaName(int mpaId) {
         String sqlMpaName = "Select name From Mpa Where mpaId = ?";
         return jdbcTemplate.queryForObject(sqlMpaName, String.class, mpaId);
     }

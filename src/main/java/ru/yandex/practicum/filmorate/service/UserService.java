@@ -11,7 +11,8 @@ import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.*;
+import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -22,7 +23,7 @@ public class UserService {
     private final UserDbStorage userDbStorage;
 
     @Autowired
-    public UserService(Validator validator, InMemoryUserStorage userStorage, UserDbStorage userDbStorage) {
+    public UserService(Validator validator, UserDbStorage userDbStorage) {
         this.validator = validator;
         this.userDbStorage = userDbStorage;
     }

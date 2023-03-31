@@ -10,13 +10,12 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.DAO.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,9 +65,7 @@ public class FilmService {
 
     public List<Film> getMostPopularFilms(int counter) {
         return filmStorage.getAllFilms().stream()
-                .sorted((Film filmOne, Film filmTwo) ->
-                        filmTwo.getLikes().size() - filmOne.getLikes().size())
-                .sorted(Collections.reverseOrder())
+                .sorted(Comparator.comparing(f -> f.getLikes().size(), Comparator.reverseOrder()))
                 .limit(counter)
                 .collect(Collectors.toList());
     }

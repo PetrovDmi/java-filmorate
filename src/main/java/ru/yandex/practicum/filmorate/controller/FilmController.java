@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.Map;
 
 @RestController
 @Slf4j
@@ -42,7 +41,7 @@ public class FilmController extends Controller<Film> {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
         filmService.update(film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
-        return film;
+        return filmService.getFilm("" + film.getId());
     }
 
     @GetMapping("/{id}")
