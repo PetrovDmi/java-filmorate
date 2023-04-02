@@ -1,4 +1,3 @@
 # java-filmorate
 Template repository for Filmorate project.
-Contact me on Tg:
-@kotletka_pro
+Диаграмма БД: https://raw.githubusercontent.com/PetrovDmi/java-filmorate/main/Diarramma.bmp
