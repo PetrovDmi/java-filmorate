@@ -20,18 +20,16 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     @Override
-    public boolean deleteFilmGenres(int filmId) {
+    public void deleteFilmGenres(int filmId) {
         String deleteOldGenres = "delete from Genre where filmId = ?";
         jdbcTemplate.update(deleteOldGenres, filmId);
-        return true;
     }
 
-    public boolean addFilmGenres(int filmId, Collection<Genre> genres) {
+    public void addFilmGenres(int filmId, Collection<Genre> genres) {
         for (Genre genre : genres) {
             String setNewGenres = "insert into Genre (filmId, genreId) values (?, ?) ON CONFLICT DO NOTHING";
             jdbcTemplate.update(setNewGenres, filmId, genre.getId());
         }
-        return true;
     }
 
     @Override

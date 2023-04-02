@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -75,18 +76,23 @@ public class UserDbStorage implements UserStorage {
 
     private User makeUser(ResultSet resultSet) throws SQLException {
         int userId = resultSet.getInt("UserID");
+        List<User> friends = new ArrayList<>(getUserFriends(userId));
+        List<Integer> friendsId = new ArrayList<>();
+        for (User friendId : friends) {
+            friendsId.add(friendId.getId());
+        }
         return new User(
                 userId,
                 resultSet.getString("Login"),
                 resultSet.getString("Name"),
                 resultSet.getString("Email"),
                 Objects.requireNonNull(resultSet.getDate("BirthDay")).toLocalDate(),
-                getUserFriends(userId));
+                friendsId);
     }
 
-    private List<Integer> getUserFriends(int userId) {
-        String sqlGetFriends = "select friendId from UserFriends where userId = ?";
-        return jdbcTemplate.queryForList(sqlGetFriends, Integer.class, userId);
+    public List<User> getUserFriends(int userId) {
+        String sqlGetFriends = "SELECT * FROM users AS u WHERE u.userId IN (SELECT friendID FROM UserFriends WHERE userId = ?)";
+        return jdbcTemplate.query(sqlGetFriends, (rs, rowNum) -> makeUser(rs), userId);
     }
 
     public void addFriend(int userId, int friendId) {
@@ -106,5 +112,11 @@ public class UserDbStorage implements UserStorage {
         String sqlSetStatus = "update UserFriends set status = false " +
                 "where userId = ? and friendId = ?";
         jdbcTemplate.update(sqlSetStatus, friendId, userId);
+    }
+
+    public Collection<User> getCommonFriends(int userId, int friendId) {
+        String sql = "SELECT * FROM users AS u WHERE u.userId IN (SELECT friendID FROM UserFriends WHERE userId = ?) " +
+                "AND u.userId IN (SELECT friendID FROM UserFriends WHERE userId = ?)";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs), userId, friendId);
     }
 }

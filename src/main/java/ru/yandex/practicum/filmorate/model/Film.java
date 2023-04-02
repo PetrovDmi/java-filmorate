@@ -10,9 +10,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 
 @Data
@@ -32,7 +30,7 @@ public class Film {
     @NotNull
     private Mpa mpa;
     private HashSet<Integer> likes = new HashSet<>();
-    private List<FilmGenre> genres = new ArrayList<>();
+    private HashSet<FilmGenre> genres = new HashSet<>();
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration, @NotNull Mpa mpa) {
         this.id = id;
@@ -50,7 +48,7 @@ public class Film {
         this.releaseDate = film.releaseDate;
         this.duration = film.duration;
         this.mpa = film.getMpa();
-        this.genres = new ArrayList<>(film.getGenres());
+        this.genres = new HashSet<>(film.getGenres());
         this.likes = new HashSet<>(film.getLikes());
     }
 

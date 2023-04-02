@@ -17,6 +17,7 @@ import java.util.Collection;
 @RequestMapping("/films")
 public class FilmController extends Controller<Film> {
     private final FilmService filmService;
+    private final String MOST_POPULAR_FILMS_COUNT = "10";
 
     public FilmController(FilmService filmService) {
         this.filmService = filmService;
@@ -51,7 +52,7 @@ public class FilmController extends Controller<Film> {
     }
 
     @GetMapping({"/popular?count={count}", "/popular"})
-    public Collection<Film> getMostPopular(@RequestParam(defaultValue = "10") int count) {
+    public Collection<Film> getMostPopular(@RequestParam(defaultValue = MOST_POPULAR_FILMS_COUNT) int count) {
         log.info("Получен запрос GET к эндпоинту: /films/popular?count={}", count);
         return filmService.getMostPopularFilms(count);
     }

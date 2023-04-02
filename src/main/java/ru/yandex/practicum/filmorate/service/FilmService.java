@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.DAO.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -26,13 +28,17 @@ public class FilmService {
     private static final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
     private final FilmDbStorage filmStorage;
+    private final MpaDbStorage mpaDbStorage;
+    private final GenreDbStorage genreDbStorage;
     private final UserService userService;
 
     @Autowired
     public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmDbStorage filmStorage,
-                       @Autowired(required = false) UserService userService) {
+                       MpaDbStorage mpaDbStorage, GenreDbStorage genreDbStorage, @Autowired(required = false) UserService userService) {
         this.validator = validator;
         this.filmStorage = filmStorage;
+        this.mpaDbStorage = mpaDbStorage;
+        this.genreDbStorage = genreDbStorage;
         this.userService = userService;
     }
 
@@ -116,18 +122,18 @@ public class FilmService {
     }
 
     public Collection<Genre> getAllGenres() {
-        return filmStorage.getAllGenres();
+        return genreDbStorage.getAllGenres();
     }
 
     public Genre getGenre(int id) {
-        return filmStorage.getGenre(id);
+        return genreDbStorage.getGenreById(id);
     }
 
     public Collection<Mpa> getAllMpa() {
-        return filmStorage.getAllMpa();
+        return mpaDbStorage.getAllMpa();
     }
 
     public Mpa getMpa(int id) {
-        return filmStorage.getMpa(id);
+        return mpaDbStorage.getMpaById(id);
     }
 }

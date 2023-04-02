@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.CustomException.ErrorResponse;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
 
 import java.util.Collection;
 
@@ -15,9 +16,11 @@ import java.util.Collection;
 @RequestMapping("/genres")
 public class GenreController {
     private final FilmService filmService;
+    private final GenreDbStorage genreDbStorage;
 
-    public GenreController(FilmService filmService) {
+    public GenreController(FilmService filmService, GenreDbStorage genreDbStorage) {
         this.filmService = filmService;
+        this.genreDbStorage = genreDbStorage;
     }
 
     @GetMapping
@@ -27,9 +30,9 @@ public class GenreController {
     }
 
     @GetMapping("/{id}")
-    public Genre findGenre(@PathVariable String id) {
+    public Genre findGenre(@PathVariable long id) {
         log.info("Получен запрос GET к эндпоинту: /genres/{}", id);
-        return filmService.getGenre(Integer.parseInt(id));
+        return genreDbStorage.getGenreById((int) id);
     }
 
     @ExceptionHandler

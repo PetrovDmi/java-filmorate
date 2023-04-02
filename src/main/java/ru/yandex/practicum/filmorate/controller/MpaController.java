@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.CustomException.ErrorResponse;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
 
 import java.util.Collection;
 
@@ -15,9 +16,11 @@ import java.util.Collection;
 @RequestMapping("/mpa")
 public class MpaController {
     private final FilmService filmService;
+    private final MpaDbStorage mpaDbStorage;
 
-    public MpaController(FilmService filmService) {
+    public MpaController(FilmService filmService, MpaDbStorage mpaDbStorage) {
         this.filmService = filmService;
+        this.mpaDbStorage = mpaDbStorage;
     }
 
     @GetMapping
@@ -27,9 +30,9 @@ public class MpaController {
     }
 
     @GetMapping("/{id}")
-    public Mpa findGenre(@PathVariable String id) {
+    public Mpa findGenre(@PathVariable long id) {
         log.info("Получен запрос GET к эндпоинту: /mpa/{}", id);
-        return filmService.getMpa(Integer.parseInt(id));
+        return mpaDbStorage.getMpaById((int) id);
     }
 
     @ExceptionHandler

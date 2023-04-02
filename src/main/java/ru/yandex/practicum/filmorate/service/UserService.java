@@ -12,7 +12,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.Collection;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,20 +56,12 @@ public class UserService {
         userDbStorage.deleteFriend(user.getId(), friend.getId());
     }
 
-    public Collection<User> getFriends(final String supposedUserId) {
-        User user = getStoredUser(supposedUserId);
-        return user.getFriends().stream()
-                .map(userDbStorage::getUser)
-                .collect(Collectors.toList());
+    public Collection<User> getFriends(int supposedUserId) {
+        return userDbStorage.getUserFriends(supposedUserId);
     }
 
-    public Collection<User> getCommonFriends(final String supposedUserId, final String supposedOtherId) {
-        User user = getStoredUser(supposedUserId);
-        User otherUser = getStoredUser(supposedOtherId);
-        return user.getFriends().stream()
-                .filter(id -> otherUser.getFriends().contains(id))
-                .map(userDbStorage::getUser)
-                .collect(Collectors.toList());
+    public Collection<User> getCommonFriends(int supposedUserId, int supposedOtherId) {
+        return userDbStorage.getCommonFriends(supposedUserId, supposedOtherId);
     }
 
     private void checkIdInStorage(Integer userId) {

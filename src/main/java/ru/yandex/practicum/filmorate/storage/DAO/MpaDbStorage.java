@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.DAO;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
@@ -10,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 
+@Component
 public class MpaDbStorage implements MpaStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -18,17 +20,11 @@ public class MpaDbStorage implements MpaStorage {
     }
 
     @Override
-    public Collection<Mpa> getAllMpa() {
-        String sqlMpa = "select * from Mpa";
-        return jdbcTemplate.query(sqlMpa, this::makeMpa);
-    }
-
-    @Override
     public Mpa getMpaById(int mpaId) {
         String sqlMpa = "select * from Mpa where mpaId = ?";
         Mpa mpa;
         try {
-            mpa = jdbcTemplate.queryForObject(sqlMpa, this::makeMpa, mpaId);
+            mpa = jdbcTemplate.queryForObject(sqlMpa, (rs, rowNum) -> makeMpa(rs), mpaId);
         } catch (EmptyResultDataAccessException e) {
             throw new ObjectNotFoundException("Возрастной рейтинг с идентификатором " +
                     mpaId + " не зарегистрирован!");
@@ -36,8 +32,14 @@ public class MpaDbStorage implements MpaStorage {
         return mpa;
     }
 
-    private Mpa makeMpa(ResultSet resultSet, int rowNum) throws SQLException {
-        return new Mpa(resultSet.getInt("RatingID"),
-                resultSet.getString("Name"));
+    @Override
+    public Collection<Mpa> getAllMpa() {
+        String sql = "select * from Mpa";
+        return jdbcTemplate.query(sql, (resultSet, rowNum) -> makeMpa(resultSet));
+    }
+
+    private Mpa makeMpa(ResultSet resultSet) throws SQLException {
+        int mpaId = resultSet.getInt("mpaId");
+        return new Mpa(mpaId, resultSet.getString("name"));
     }
 }
