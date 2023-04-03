@@ -10,15 +10,14 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.FilmGenre;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.sql.Date;
 import java.sql.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component("FilmDbStorage")
 public class FilmDbStorage implements FilmStorage {
@@ -55,13 +54,12 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sql, (resultSet, rowNum) -> makeFilm(resultSet));
     }
 
-    public List<Film> getMostPopularFilms() {
+    public List<Film> getMostPopularFilms(int count) {
         String sqlPopularFilms =
-                "SELECT f.filmId, f.name AS fname,f.description,f.releaseDate,f.duration,m.mpaId,m.name AS mname," +
-                        "COUNT(l.userId) as likes " +
-                        "FROM Film as f INNER JOIN Mpa as m ON f.mpa = m.mpaId " +
-                        "INNER JOIN Likes As l ON l.filmId = f.filmId GROUP BY f.filmId ORDER BY likes DESC LIMIT 10";
-        return jdbcTemplate.query(sqlPopularFilms, (resultSet, rowNum) -> makeFilm(resultSet));
+                "SELECT f.filmId, f.name AS fname,f.description,f.releaseDate,f.duration,m.mpaId,m.name AS mname, " +
+                        "COUNT(l.filmId) as likes FROM Film as f JOIN Mpa as m ON f.mpa = m.mpaId " +
+                        "LEFT JOIN Likes As l ON l.filmId = f.filmId GROUP BY f.filmId ORDER BY likes DESC LIMIT ?;";
+        return jdbcTemplate.query(sqlPopularFilms, (resultSet, rowNum) -> makeFilm(resultSet), count);
     }
 
     @Override
@@ -83,13 +81,17 @@ public class FilmDbStorage implements FilmStorage {
             return preparedStatement;
         }, keyHolder);
 
-        for (FilmGenre genre : film.getGenres()) {
-            jdbcTemplate.update(sqlQueryGenre, film.getId(), genre.getId());
+        List<Object[]> batchArgsGenres = new ArrayList<>();
+        for (Genre genre : film.getGenres()) {
+            batchArgsGenres.add(new Object[]{film.getId(), genre.getId()});
         }
+        jdbcTemplate.batchUpdate(sqlQueryGenre, batchArgsGenres);
 
+        List<Object[]> batchArgsLikes = new ArrayList<>();
         for (Integer like : film.getLikes()) {
-            jdbcTemplate.update(sqlQueryLike, film.getId(), like);
+            batchArgsLikes.add(new Object[]{film.getId(), like});
         }
+        jdbcTemplate.batchUpdate(sqlQueryLike, batchArgsLikes);
 
         int id = Objects.requireNonNull(keyHolder.getKey()).intValue();
         return getFilm(id);
@@ -97,8 +99,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
-        String sqlQuery = "Update Film Set name = ?,description = ?,releaseDate = ?,"
-                + "duration = ?,mpa = ? Where filmId = ?";
+        String sqlQuery = "UPDATE Film SET name = ?, description = ?, releaseDate = ?, duration = ?, mpa = ? WHERE filmId = ?";
         String sqlQueryGenre = "INSERT INTO filmGenres (filmId,genreId) VALUES (?,?)";
         String sqlQueryLike = "INSERT INTO Likes (filmId,userId)  VALUES (?,?)";
         String sqlQueryDeleteGenre = "DELETE FROM filmGenres WHERE filmId = ?";
@@ -116,13 +117,11 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlQueryDeleteLikes, film.getId());
         jdbcTemplate.update(sqlQueryDeleteGenre, film.getId());
 
-        for (FilmGenre genre : film.getGenres()) {
-            jdbcTemplate.update(sqlQueryGenre, film.getId(), genre.getId());
-        }
-
-        for (Integer like : film.getLikes()) {
-            jdbcTemplate.update(sqlQueryLike, film.getId(), like);
-        }
+        jdbcTemplate.batchUpdate(sqlQueryGenre, film.getGenres(), film.getGenres().size(), (preparedStatement, genre) -> {
+            preparedStatement.setInt(1, film.getId());
+            preparedStatement.setInt(2, genre.getId());
+        });
+        jdbcTemplate.batchUpdate(sqlQueryLike, film.getLikes().stream().map(l -> new Object[]{film.getId(), l}).collect(Collectors.toList()));
 
         return film;
     }
@@ -165,11 +164,11 @@ public class FilmDbStorage implements FilmStorage {
                 getFilmGenres(filmId));
     }
 
-    private HashSet<FilmGenre> getFilmGenres(int id) {
+    private HashSet<Genre> getFilmGenres(int id) {
         String sqlQuery = "SELECT * FROM Genre WHERE genreId IN "
                 + "(SELECT genreId FROM FilmGenres WHERE filmId = ?)";
         return new HashSet<>(jdbcTemplate.query(sqlQuery,
-                (rs, rowNum) -> new FilmGenre(rs.getInt("genreId"),
+                (rs, rowNum) -> new Genre(rs.getInt("genreId"),
                         rs.getString("genreName")), id)) {
         };
     }

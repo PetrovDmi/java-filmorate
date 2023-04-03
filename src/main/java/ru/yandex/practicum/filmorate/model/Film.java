@@ -30,7 +30,7 @@ public class Film {
     @NotNull
     private Mpa mpa;
     private HashSet<Integer> likes = new HashSet<>();
-    private HashSet<FilmGenre> genres = new HashSet<>();
+    private HashSet<Genre> genres = new HashSet<>();
 
     public Film(int id, String name, String description, LocalDate releaseDate, int duration, @NotNull Mpa mpa) {
         this.id = id;

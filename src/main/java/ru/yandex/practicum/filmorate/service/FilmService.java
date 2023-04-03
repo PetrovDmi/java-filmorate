@@ -17,10 +17,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -69,11 +67,8 @@ public class FilmService {
         filmStorage.deleteLike(film.getId(), user.getId());
     }
 
-    public List<Film> getMostPopularFilms(int counter) {
-        return filmStorage.getAllFilms().stream()
-                .sorted(Comparator.comparing(f -> f.getLikes().size(), Comparator.reverseOrder()))
-                .limit(counter)
-                .collect(Collectors.toList());
+    public List<Film> getMostPopularFilms(int count) {
+        return filmStorage.getMostPopularFilms(count);
     }
 
     public Film getFilm(String id) {
