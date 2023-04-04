@@ -1,17 +1,23 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.CustomException.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.CustomException.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.DAO.MpaDbStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -19,14 +25,18 @@ public class FilmService {
     private static int increment = 1;
     private static final LocalDate MIN_REALIZE_DATE = LocalDate.of(1895, 12, 28);
     private final Validator validator;
-    private final InMemoryFilmStorage filmStorage;
+    private final FilmDbStorage filmStorage;
+    private final MpaDbStorage mpaDbStorage;
+    private final GenreDbStorage genreDbStorage;
     private final UserService userService;
 
     @Autowired
-    public FilmService(Validator validator, InMemoryFilmStorage filmStorage,
-                       @Autowired(required = false) UserService userService) {
+    public FilmService(Validator validator, @Qualifier("FilmDbStorage") FilmDbStorage filmStorage,
+                       MpaDbStorage mpaDbStorage, GenreDbStorage genreDbStorage, @Autowired(required = false) UserService userService) {
         this.validator = validator;
         this.filmStorage = filmStorage;
+        this.mpaDbStorage = mpaDbStorage;
+        this.genreDbStorage = genreDbStorage;
         this.userService = userService;
     }
 
@@ -57,9 +67,8 @@ public class FilmService {
         filmStorage.deleteLike(film.getId(), user.getId());
     }
 
-    public Collection<Film> getMostPopularFilms(String sizeString) {
-        int size = intFromString(sizeString);
-        return filmStorage.getMostPopularFilms(size);
+    public List<Film> getMostPopularFilms(int count) {
+        return filmStorage.getMostPopularFilms(count);
     }
 
     public Film getFilm(String id) {
@@ -105,5 +114,21 @@ public class FilmService {
                     filmId + " не зарегистрирован!");
         }
         return film;
+    }
+
+    public Collection<Genre> getAllGenres() {
+        return genreDbStorage.getAllGenres();
+    }
+
+    public Genre getGenre(int id) {
+        return genreDbStorage.getGenreById(id);
+    }
+
+    public Collection<Mpa> getAllMpa() {
+        return mpaDbStorage.getAllMpa();
+    }
+
+    public Mpa getMpa(int id) {
+        return mpaDbStorage.getMpaById(id);
     }
 }

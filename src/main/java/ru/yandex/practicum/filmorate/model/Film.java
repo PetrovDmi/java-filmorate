@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -25,10 +26,33 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     @Positive(message = "Продолжительность фильма не может быть отрицательной. ")
-    private long duration;
+    private int duration;
+    @NotNull
+    private Mpa mpa;
     private HashSet<Integer> likes = new HashSet<>();
+    private HashSet<Genre> genres = new HashSet<>();
 
-    public Film(int id, String name, String description, LocalDate releaseDate, long duration) {
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration, @NotNull Mpa mpa) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+    }
+
+    public Film(int id, Film film) {
+        this.id = id;
+        this.name = film.name;
+        this.description = film.description;
+        this.releaseDate = film.releaseDate;
+        this.duration = film.duration;
+        this.mpa = film.getMpa();
+        this.genres = new HashSet<>(film.getGenres());
+        this.likes = new HashSet<>(film.getLikes());
+    }
+
+    public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
         this.id = id;
         this.name = name;
         this.description = description;

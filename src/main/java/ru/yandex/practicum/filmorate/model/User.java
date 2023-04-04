@@ -30,9 +30,9 @@ public class User {
 
     public User(int id, String login, String name, String email, LocalDate birthday) {
         this.id = id;
+        this.email = email;
         this.login = login;
         this.name = name;
-        this.email = email;
         this.birthday = birthday;
     }
 

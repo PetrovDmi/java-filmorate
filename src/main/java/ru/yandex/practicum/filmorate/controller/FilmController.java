@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.Map;
 
 @RestController
 @Slf4j
@@ -42,7 +41,7 @@ public class FilmController extends Controller<Film> {
         log.info("Получен запрос PUT. Данные тела запроса: {}", film);
         filmService.update(film);
         log.info("Обновлен объект {} с идентификатором {}", Film.class.getSimpleName(), film.getId());
-        return film;
+        return filmService.getFilm("" + film.getId());
     }
 
     @GetMapping("/{id}")
@@ -52,7 +51,7 @@ public class FilmController extends Controller<Film> {
     }
 
     @GetMapping({"/popular?count={count}", "/popular"})
-    public Collection<Film> getMostPopular(@RequestParam(defaultValue = "10") String count) {
+    public Collection<Film> getMostPopular(@RequestParam(defaultValue = "10") int count) {
         log.info("Получен запрос GET к эндпоинту: /films/popular?count={}", count);
         return filmService.getMostPopularFilms(count);
     }
@@ -76,18 +75,21 @@ public class FilmController extends Controller<Film> {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleRuntimeException(final RuntimeException e) {
+        log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleObjectNotFound(final ObjectNotFoundException e) {
+        log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(final ValidationException e) {
+        log.warn(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
 }

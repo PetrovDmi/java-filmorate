@@ -73,6 +73,6 @@ public class InMemoryUserStorage implements UserStorage {
     private boolean checkFriendIsFriendToEachOther(int userId, int friendId) {
         User user = users.get(userId);
         User friend = users.get(friendId);
-        return  user.getFriends().contains(friendId) && friend.getFriends().contains(userId);
+        return user.getFriends().contains(friendId) && friend.getFriends().contains(userId);
     }
 }
