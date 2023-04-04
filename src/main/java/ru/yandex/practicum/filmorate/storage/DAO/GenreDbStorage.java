@@ -9,7 +9,9 @@ import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Component
 public class GenreDbStorage implements GenreStorage {
@@ -26,10 +28,13 @@ public class GenreDbStorage implements GenreStorage {
     }
 
     public void addFilmGenres(int filmId, Collection<Genre> genres) {
+        String setNewGenres = "insert into Genre (filmId, genreId) values (?, ?) ON CONFLICT DO NOTHING";
+        List<Object[]> batchArgs = new ArrayList<>();
         for (Genre genre : genres) {
-            String setNewGenres = "insert into Genre (filmId, genreId) values (?, ?) ON CONFLICT DO NOTHING";
-            jdbcTemplate.update(setNewGenres, filmId, genre.getId());
+            Object[] rowData = new Object[] {filmId, genre.getId()};
+            batchArgs.add(rowData);
         }
+        jdbcTemplate.batchUpdate(setNewGenres, batchArgs);
     }
 
     @Override
